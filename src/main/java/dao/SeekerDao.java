@@ -9,6 +9,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SeekerDao {
     private final static Logger logger = Logger.getLogger(DatabaseConnector.class);
@@ -16,7 +18,8 @@ public class SeekerDao {
     public static boolean save(Seeker seeker){
         String emailid=seeker.getEmail();
         MemberDao.save(seeker);
-        int member_id=MemberDao.getByEmailid(emailid);
+        Member m=MemberDao.getByEmailId(emailid);
+        int member_id=m.getId();
         System.out.println(member_id);
         try {
             PreparedStatement stmt = conn.prepareStatement("insert into seeker(memberId,noOfChildren,spouse) values(?,?,?)");
@@ -42,7 +45,7 @@ public class SeekerDao {
             stmt.setInt(3, seeker.getMemberId());
             stmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage(),e);
         }
 
     }
@@ -57,9 +60,9 @@ public class SeekerDao {
             stmt.setInt(1, seekerId);
             ResultSet res = QueryExecutor.queryExecute(stmt);
             while (res.next()) {
-                seeker.setMemberId(res.getInt(1));
-                seeker.setNoOfChildren(res.getInt(2));
-                seeker.setSpouseName(res.getString(3));
+                seeker.setMemberId(res.getInt("memberId"));
+                seeker.setNoOfChildren(res.getInt("noOfChildren"));
+                seeker.setSpouseName(res.getString("spouse"));
                 seeker.setId(res.getInt("id"));
                 seeker.setAddress(res.getString("address"));
                 seeker.setEmail(res.getString("email"));
@@ -68,16 +71,41 @@ public class SeekerDao {
                 seeker.setPhoneNumber(res.getInt("phoneNumber"));
                 seeker.setType(Member.MemberType.stringToEnum(res.getString("type")));
             }
-//            seeker.setId(member.getId());
-//            seeker.setAddress(member.getAddress());
-//            seeker.setEmail(member.getEmail());
-//            seeker.setFirstName(member.getFirstName());
-//            seeker.setLastName(member.getLastName());
-//            seeker.setPhoneNumber(member.getPhoneNumber());
-//            seeker.setType(member.getType());
+
             res.close();
             stmt.close();
             return seeker;
+
+        } catch (SQLException e) {
+            logger.error(e.getMessage(), e);
+        }
+        return null;
+    }
+    public static List<Seeker> getAllSeeker(){
+            List<Seeker> list=new ArrayList<>();
+
+        try {
+            PreparedStatement stmt = conn.prepareStatement("SELECT * FROM seeker,member where memberId=id");
+           // stmt.setInt(1, seekerId);
+            ResultSet res = QueryExecutor.queryExecute(stmt);
+            while (res.next()) {
+                Seeker seeker=new Seeker();
+                seeker.setMemberId(res.getInt("memberId"));
+                seeker.setNoOfChildren(res.getInt("noOfChildren"));
+                seeker.setSpouseName(res.getString("spouse"));
+                seeker.setId(res.getInt("id"));
+                seeker.setAddress(res.getString("address"));
+                seeker.setEmail(res.getString("email"));
+                seeker.setFirstName(res.getString("firstName"));
+                seeker.setLastName(res.getString("lastName"));
+                seeker.setPhoneNumber(res.getInt("phoneNumber"));
+                seeker.setType(Member.MemberType.stringToEnum(res.getString("type")));
+                list.add(seeker);
+            }
+
+            res.close();
+            stmt.close();
+            return list;
 
         } catch (SQLException e) {
             logger.error(e.getMessage(), e);
@@ -88,18 +116,24 @@ public class SeekerDao {
     public static void main(String[] args) {
 //        Seeker s=new Seeker();
 //        s.setAddress("delhi");
-//        s.setEmail("abhilash@gmail.com");
-//        s.setFirstName("abhilash");
+//        s.setEmail("adarsh@gmail.com");
+//        s.setFirstName("adarsh");
 //        s.setLastName("kumar");
-//        s.setPassword("abhilash123");
-//        s.setPhoneNumber(990173253);
+//        s.setPassword("adarsh123");
+//        s.setPhoneNumber(990193253);
 //        s.setNoOfChildren(2);
-//        s.setSpouseName("vijiya");
+//        s.setSpouseName("ambika");
 //        s.setType(Seeker.MemberType.SEEKER);
 //        SeekerDao.save(s);
-
-      Seeker s1=getById(1);
-       System.out.println(s1.getMemberId() + s1.getId());
+//        Seeker s=getById(1);
+//        System.out.println(s.getId());
+//        System.out.println("start");
+//        List<Seeker> l=getAllSeeker();
+//        for(int i=0;i<l.size();i++){
+//            System.out.println(l.get(i).getLastName());
+//        }
+//      Seeker s1=getById(1);
+//       System.out.println(s1.getMemberId() + s1.getId());
    }
 }
 

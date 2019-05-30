@@ -108,16 +108,35 @@ public class JobDao {
         }
         return resultList;
     }
+    public static List<Job> getAllJobs() {
+        List<Job> resultList = new LinkedList<>();
 
-    //public static void main(String[] args) {
+
+        try (PreparedStatement stmt = conn.prepareStatement("SELECT * FROM job")) {
+            try (ResultSet res = stmt.executeQuery()) {
+                while (res.next()) {
+                    Job job=new Job();
+                    job.setId(res.getInt("id"));
+                    job.setTitle(res.getString("title"));
+                    job.setStartDateTime(res.getDate("startDateTime"));
+                    job.setEndDateTime(res.getDate("endDateTime"));
+                    job.setPayPerHour(res.getDouble("payPerHour"));
+                    resultList.add(job);
+                }
+            }
+        } catch (Exception e) {
+        }
+        return resultList;
+    }
+ //   public static void main(String[] args) {
 //        Job job=new Job();
 //        job.setId(1);
 //        JobDao.delete(job);
 //        Job job=null;
 //        job=JobDao.getById(1);
 //        System.out.println(job.getTitle());
-//        List<Job> l=new ArrayList<>();
-//        l=JobDao.getJobsPostedBy(1);
+//       List<Job> l=new ArrayList<>();
+//        l=JobDao.getAllJobs();
 //        for(int i=0;i<l.size();i++){
 //            System.out.println(l.get(i).getTitle());
 //        }
@@ -132,6 +151,6 @@ public class JobDao {
 //        job.setTitle("baby care5");
 //        JobDao.save(job);
 //
-//    }
+  //  }
 }
 

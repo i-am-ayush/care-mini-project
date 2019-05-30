@@ -31,8 +31,9 @@ public class MemberDao {
             return false;
         }
     }
-    public static void update(Member member){
-        try{
+
+    public static void update(Member member) {
+        try {
             PreparedStatement stmt = conn.prepareStatement("UPDATE member "
                     + "SET firstName=?, lastName=?, phoneNumber=?, email=?, address=?"
                     + "WHERE id=?");
@@ -41,20 +42,21 @@ public class MemberDao {
             stmt.setInt(3, member.getPhoneNumber());
             stmt.setString(4, member.getEmail());
             stmt.setString(5, member.getAddress());
-            stmt.setInt(6,member.getId());
+            stmt.setInt(6, member.getId());
             stmt.executeUpdate();
             stmt.close();
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
     }
-    public static boolean delete(int memberId){
+
+    public static boolean delete(int memberId) {
 
         try {
-            PreparedStatement stmt = conn.prepareStatement( "UPDATE member "
+            PreparedStatement stmt = conn.prepareStatement("UPDATE member "
                     + "SET status='INACTIVE' "
                     + "WHERE id=?");
-            stmt.setInt(1,memberId);
+            stmt.setInt(1, memberId);
             stmt.executeUpdate();
             return true;
         } catch (SQLException e) {
@@ -63,45 +65,75 @@ public class MemberDao {
         }
 
     }
-//    public static Member getById(int memberId) {
-//        try {
-//            Member member = new Member();
-//            PreparedStatement stmt = conn.prepareStatement("SELECT * FROM MEMBER where id=?");
-//            stmt.setInt(1, memberId);
-//
-//            ResultSet res = QueryExecutor.queryExecute(stmt);
-//            while (res.next()) {
-//                member.setId(res.getInt());
-//                member.setFirstName(res.getString(2));
-//                member.setLastName(res.getString(3));
-//                member.setPhoneNumber(res.getInt(4));
-//                member.
-//                member.setEmail(res.getString(5));
-//                member.setType(Member.MemberType.stringToEnum(res.getString(6)));
-//                member.setAddress(res.getString(7));
-//                member.setPassword(res.getString(9));
-//            }
-//            res.close();
-//            stmt.close();
-//            return member;
-//        } catch (SQLException e) {
-//            logger.error(e.getMessage(), e);
-//            return null;
-//        }
-//
-//    }
+
 
     public static Member getById(int memberId) {
         try {
             // List<Member> listOfMember = new ArrayList<>();
             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM MEMBER where id=?");
             stmt.setInt(1,memberId);
+            return getAll(stmt).get(0);
+        } catch (SQLException e) {
+            logger.error(e.getMessage(), e);
+            return null;
+        }
+
+    }
+
+    public static Member getByEmailIdAndPassword(String emailId, String password) {
+        try {
+            PreparedStatement stmt = conn.prepareStatement("select * from member where email=? and password=?");
+            stmt.setString(1, emailId);
+            stmt.setString(2, password);
+            return getAll(stmt).get(0);
+        } catch (SQLException e) {
+            logger.error(e.getMessage(), e);
+            return null;
+        }
+    }
+
+    public static Member getByEmailId(String emailId) {
+        try {
+            PreparedStatement stmt = conn.prepareStatement("select * from member where email=?");
+                stmt.setString(1,emailId);
+            return getAll(stmt).get(0);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static List<String> getAllEmail(String emailId) {
+        List<String> list = new ArrayList<>();
+        try {
+            PreparedStatement stmt = conn.prepareStatement("select email from member where email like ?");
+            stmt.setString(1, "%" + emailId + "%");
             ResultSet res = QueryExecutor.queryExecute(stmt);
-
-            Member member = new Member();
             while (res.next()) {
+                list.add(res.getString("email"));
+            }
 
-                member.setId(res.getInt("id" ));
+        } catch (SQLException e) {
+            logger.error(e.getMessage(), e);
+        }
+        return list;
+    }
+    public static List<Member> getAllMember(){
+        try {
+            PreparedStatement stmt = conn.prepareStatement("select * from member;");
+            return getAll(stmt);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    public static List<Member> getAll(PreparedStatement stmt) {
+        List<Member> list = new ArrayList<>();
+        try {
+            ResultSet res = QueryExecutor.queryExecute(stmt);
+            while (res.next()) {
+                Member member = new Member();
+                member.setId(res.getInt("id"));
                 member.setFirstName(res.getString("firstName"));
                 member.setLastName(res.getString("lastName"));
                 member.setPhoneNumber(res.getInt("phoneNumber"));
@@ -109,75 +141,27 @@ public class MemberDao {
                 member.setType(Member.MemberType.stringToEnum(res.getString("type")));
                 member.setAddress(res.getString("address"));
                 member.setStatus(Member.Status.valueOf(res.getString("status")));
-            }
-            res.close();
-            stmt.close();
-            return member;
-        } catch (SQLException e) {
-            logger.error(e.getMessage(), e);
-            return null;
-        }
-
-    }
-    public static boolean getByEmailid(String emailId,String password){
-
-        try {
-            PreparedStatement stmt = conn.prepareStatement("select id from member where email=? and password=?");
-            stmt.setString(1,emailId);
-            stmt.setString(2,password);
-            ResultSet res = QueryExecutor.queryExecute(stmt);
-            if(res.next()){
-                return true;
-            }
-            else{
-                return false;
+                list.add(member);
             }
 
         } catch (SQLException e) {
             logger.error(e.getMessage(), e);
-            return false;
-        }
-    }
-    public static int getByEmailid(String emailId){
-        int id=0;
-        try {
-            PreparedStatement stmt = conn.prepareStatement("select id from member where email=?");
-            stmt.setString(1,emailId);
-            ResultSet res = QueryExecutor.queryExecute(stmt);
-            while(res.next()){
-                id= res.getInt("id");
-            }
-
-
-        } catch (SQLException e) {
-            logger.error(e.getMessage(), e);
-
-        }
-        return id;
-    }
-    public static List<String> getAllEmail(String emailId){
-        List<String> list=new ArrayList<>();
-        try {
-            PreparedStatement stmt = conn.prepareStatement("select email from member where email like ?");
-           stmt.setString(1,"%"+emailId+"%");
-            ResultSet res = QueryExecutor.queryExecute(stmt);
-            while(res.next()){
-                list.add(res.getString("email"));
-            }
-
-        } catch (SQLException e) {
-            logger.error(e.getMessage(), e);
-
         }
         return list;
     }
 
-    public static void main(String[] args) {
-     List<String> list=   MemberDao.getAllEmail("bhi");
-        for(int i=0;i<list.size();i++){
-            System.out.println(list.get(i));
-        }
-    }
+//    public static void main(String[] args) {
+//        List<Member> g=getAllMember();
+//        for(int i=0;i<g.size();i++){
+//                System.out.println(g.get(i).getType());
+//            }
+//       Member m= getById(1);
+//        System.out.println(m.getEmail());
+//        Member m=getByEmailIdAndPassword("harsh@gmail.com","harsh123");
+//        Member m1=getByEmailId("harsh@gmail.com");
+//        System.out.println(m.getLastName());
+//        System.out.println(m1.getLastName());
+//    }
 }
 
 

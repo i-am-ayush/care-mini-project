@@ -73,18 +73,19 @@ public class ApplicationDao {
                 application.setExpectedPay(res.getDouble(4));
                 Application.Status status = Application.Status.valueOf(res.getString("status"));
                 application.setStatus(status);
-                res.close();
-                stmt.close();
-            }
-            return application;
 
+            }
+
+            res.close();
+            stmt.close();
+            return application;
         } catch (SQLException e) {
             logger.error(e.getMessage(), e);
         }
         return null;
     }
 
-    public boolean updateByExpectedPay(int jobAppId, double expectedPay) {
+    public static boolean updateByExpectedPay(int jobAppId, double expectedPay) {
         boolean isUpdated = false;
 
         try (PreparedStatement stmt = conn.prepareStatement("UPDATE application "
@@ -100,7 +101,7 @@ public class ApplicationDao {
         return isUpdated;
     }
 
-    public static List<Application> get(int id) {
+    public static List<Application> getAllApplicationById(int id) {
         List<Application> list = new ArrayList<>();
         try {
             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM application where memberId=?");
@@ -110,12 +111,14 @@ public class ApplicationDao {
                 Application application = new Application();
                 application.setApplicationId(res.getInt(1));
                 application.setJobId(res.getInt(2));
-                //application.setMemberId(res.getInt(3));
+                application.setMemberId(res.getInt(3));
                 application.setExpectedPay(res.getDouble(4));
                 Application.Status status = Application.Status.valueOf(res.getString("status"));
                 application.setStatus(status);
                 list.add(application);
             }
+            res.close();
+            stmt.close();
             return list;
 
         } catch (SQLException e) {
@@ -123,7 +126,30 @@ public class ApplicationDao {
         }
         return null;
     }
+    public static List<Application> getAllApplication() {
+        List<Application> list = new ArrayList<>();
+        try {
+            PreparedStatement stmt = conn.prepareStatement("SELECT * FROM application;");
+            ResultSet res = QueryExecutor.queryExecute(stmt);
+            while (res.next()) {
+                Application application = new Application();
+                application.setApplicationId(res.getInt(1));
+                application.setJobId(res.getInt(2));
+                application.setMemberId(res.getInt(3));
+                application.setExpectedPay(res.getDouble(4));
+                Application.Status status = Application.Status.valueOf(res.getString("status"));
+                application.setStatus(status);
+                list.add(application);
+            }
+            res.close();
+            stmt.close();
+            return list;
 
+        } catch (SQLException e) {
+            logger.error(e.getMessage(), e);
+        }
+        return null;
+    }
     public static List<Map<String, Object>> getSitterNotAppliedJobsList(int userId) {
         List<Map<String, Object>> resultList = new LinkedList<>();
         try (PreparedStatement stmt = conn.prepareStatement("SELECT id, title, startDateTime, payPerHour FROM job WHERE id NOT IN " +
@@ -213,7 +239,7 @@ public class ApplicationDao {
         return resultList;
     }
 
-    public boolean deleteByJobId(int jobId) {
+    public static boolean deleteByJobId(int jobId) {
 
         try (PreparedStatement stmt = conn.prepareStatement("UPDATE Application "
                 + "SET status='INACTIVE' "
@@ -228,7 +254,7 @@ public class ApplicationDao {
         return false;
     }
 
-    public boolean deleteByuserId(int userId) {
+    public static boolean deleteByuserId(int userId) {
 
         try (PreparedStatement stmt = conn.prepareStatement("UPDATE Application "
                 + "SET status='INACTIVE' "
@@ -243,22 +269,26 @@ public class ApplicationDao {
         return false;
     }
 
-    public static void main(String[] args) {
+ //   public static void main(String[] args) {
 //        Application ap=new Application();
 //        ap.setMemberId(8);
 //        ap.setJobId(2);
 //        ap.setExpectedPay(900);
 //        save(ap);
-        List<Map<String, Object>> l = new ArrayList<>();
+//        List<Map<String, Object>> l = new ArrayList<>();
 //
-        l = ApplicationDao.getAllJobBySitter(1);
-        for (int i = 0; i < l.size(); i++) {
-            System.out.println("------------neww job-----------");
-            for (Map.Entry<String, Object> entry : l.get(i).entrySet()) {
-                System.out.println("Key = " + entry.getKey() +
-                        ", Value = " + entry.getValue());
-            }
-        }
-
-    }
+//        l = ApplicationDao.getAllJobBySitter(1);
+//        for (int i = 0; i < l.size(); i++) {
+//            System.out.println("------------neww job-----------");
+//            for (Map.Entry<String, Object> entry : l.get(i).entrySet()) {
+//                System.out.println("Key = " + entry.getKey() +
+//                        ", Value = " + entry.getValue());
+//            }
+//        }
+//    List<Application> list=new ArrayList<>();
+//    list=getAllApplication();
+//        System.out.println(list);
+//    Application a=getById(1);
+//        System.out.println(a.getJobId());
+  //  }
 }

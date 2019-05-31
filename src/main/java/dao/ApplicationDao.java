@@ -199,7 +199,7 @@ public class ApplicationDao {
 
     public static List<Map<String, Object>> getSitterJobListint (int userId) {
         List<Map<String, Object>> resultList = new LinkedList<>();
-        try (PreparedStatement stmt = conn.prepareStatement("select title,app.status, startDateTime, expectedPay from application app, job jb" +
+        try (PreparedStatement stmt = conn.prepareStatement("select title,app.status, payPerHour, expectedPay from application app, job jb" +
                 " where app.jobId = jb.id and app.memberId=?")) {
             stmt.setInt(1, userId);
             try (ResultSet res = stmt.executeQuery()) {
@@ -207,7 +207,7 @@ public class ApplicationDao {
                     Map<String, Object> tempMap = new HashMap<>();
                     //tempMap.put("id", res.getInt("id"));
                     tempMap.put("title", res.getString("title"));
-                    tempMap.put("startDate", res.getString("startDateTime"));
+                    tempMap.put("payPerHour", res.getString("payPerHour"));
                     tempMap.put("status", Application.Status.valueOf(res.getString("status")));
                     tempMap.put("expectedPay", res.getDouble("expectedPay"));
                     resultList.add(tempMap);
@@ -218,25 +218,27 @@ public class ApplicationDao {
         }
         return resultList;
     }
-    public static List<Map<String, Object>> getAllJobBySitter (int jobId) {
-        List<Map<String, Object>> resultList = new LinkedList<>();
-        try (PreparedStatement stmt = conn.prepareStatement("Select a.id, firstName, a.status, expectedPay from member m, Application a where a.memberId = m.id and jobId = ?")){
+    public static List<Application> getAllApplicationByJobId (int jobId) {
+        List<Application> list=new ArrayList<>();
+        try (PreparedStatement stmt = conn.prepareStatement("select * from Application where jobId = ?")){
             stmt.setInt(1, jobId);
+
             try (ResultSet res = stmt.executeQuery()) {
                 while (res.next()) {
-                    Map<String, Object> tempMap = new HashMap<>();
-                    //tempMap.put("id", res.getInt("id"));
-                    tempMap.put("id", res.getInt("id"));
-                    tempMap.put("firstName", res.getString("firstName"));
-                    tempMap.put("status", Application.Status.valueOf(res.getString("status")));
-                    tempMap.put("expectedPay", res.getDouble("expectedPay"));
-                    resultList.add(tempMap);
+                    Application application = new Application();
+                    application.setApplicationId(res.getInt(1));
+                    application.setJobId(res.getInt(2));
+                    application.setMemberId(res.getInt(3));
+                    application.setExpectedPay(res.getDouble(4));
+                    Application.Status status = Application.Status.valueOf(res.getString("status"));
+                    application.setStatus(status);
+                    list.add(application);
                 }
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
-        return resultList;
+        return list;
     }
 
     public static boolean deleteByJobId(int jobId) {
@@ -269,7 +271,7 @@ public class ApplicationDao {
         return false;
     }
 
- //   public static void main(String[] args) {
+    //   public static void main(String[] args) {
 //        Application ap=new Application();
 //        ap.setMemberId(8);
 //        ap.setJobId(2);
@@ -290,5 +292,5 @@ public class ApplicationDao {
 //        System.out.println(list);
 //    Application a=getById(1);
 //        System.out.println(a.getJobId());
-  //  }
+    //  }
 }

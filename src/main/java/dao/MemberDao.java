@@ -86,10 +86,12 @@ public class MemberDao {
             stmt.setString(1, emailId);
             stmt.setString(2, password);
             return getAll(stmt).get(0);
-        } catch (SQLException e) {
+
+        } catch (Exception e) {
             logger.error(e.getMessage(), e);
             return null;
         }
+
     }
 
     public static Member getByEmailId(String emailId) {

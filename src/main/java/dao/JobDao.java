@@ -32,7 +32,7 @@ public class JobDao {
             return false;
         }
     }
-    public static void update(Job job){
+    public static boolean update(Job job){
         try {
             PreparedStatement stmt = conn.prepareStatement("UPDATE job "
                     + "SET title=?, startDateTime=?, endDateTime=?, payPerHour=? "
@@ -45,9 +45,11 @@ public class JobDao {
             stmt.setDouble(4,job.getPayPerHour());
             stmt.setInt(5,job.getId());
             stmt.executeUpdate();
+            return true;
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return false;
     }
     public static Job getById(int jobId){
         PreparedStatement stmt = null;
